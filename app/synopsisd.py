@@ -70,9 +70,9 @@ import get_env_app
 # FIXME : UTC
 # Only log the items that directly contribute to the synopsis generation
 def update_synopsis_file(synopsis_file_fp, this_uuid, temp_c, wet_bulb_c, dew_point_c, humidity, pressure, rain_rate, wind_knots_2m, synopsis_code, synopsis_text):
-    rec_tsv = time.ctime() + '\t' +\
-        synopsis_text + '\t' +\
-        'WMO_4680_' + synopsis_code.__str__() + '\t' +\
+    rec_tsv = time.ctime() + '\t' + \
+        'WMO_4680_' + synopsis_code.__str__() + '\t' + \
+        synopsis_text + '\t' + \
         temp_c.__str__() + '\t' + \
         wet_bulb_c.__str__() + '\t' + \
         dew_point_c.__str__() + '\t' + \
