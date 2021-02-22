@@ -119,7 +119,7 @@ def main():
         print('preamble_secs=' + preamble_secs.__str__())
         print('video_length_secs=' + video_length_secs.__str__())
 
-        synopsis_file_fp = open('synopsis.tsv', 'w')
+        synopsis_file_fp = open('synopsis.tsv', 'a')        # file needs to exist / be touched before this script runs
 
         print('enter main loop')
         while True:
@@ -137,7 +137,6 @@ def main():
 
             wet_bulb_c = wet_bulb.get_wet_bulb(temp_c, pressure, dew_point_c)
 
-            print()
             synopsis_code, synopsis_text = synopsis.get_synopsis(temp_c, wet_bulb_c, dew_point_c, rain_rate, wind_knots_2m)
             update_synopsis_file(synopsis_file_fp, this_uuid, temp_c, wet_bulb_c, dew_point_c, pressure, rain_rate, synopsis_code, synopsis_text)
             # Tweet the video
