@@ -68,15 +68,18 @@ import get_env_app
 
 # FIXME : leading zero
 # FIXME : UTC
-def update_synopsis_file(synopsis_file_fp, this_uuid, temp_c, wet_bulb_c, dew_point_c, pressure, rain_rate, synopsis_code, synopsis_text):
+# Only log the items that directly contribute to the synopsis generation
+def update_synopsis_file(synopsis_file_fp, this_uuid, temp_c, wet_bulb_c, dew_point_c, humidity, pressure, rain_rate, wind_knots_2m, synopsis_code, synopsis_text):
     rec_tsv = time.ctime() + '\t' +\
         synopsis_text + '\t' +\
         'WMO_4680_' + synopsis_code.__str__() + '\t' +\
         temp_c.__str__() + '\t' + \
         wet_bulb_c.__str__() + '\t' + \
         dew_point_c.__str__() + '\t' + \
+        humidity.__str__() + '\t' + \
         pressure.__str__() + '\t' + \
         rain_rate.__str__() + '\t' + \
+        wind_knots_2m.__str__() + '\t' + \
         this_uuid
 
     print(rec_tsv)
@@ -138,7 +141,7 @@ def main():
             wet_bulb_c = wet_bulb.get_wet_bulb(temp_c, pressure, dew_point_c)
 
             synopsis_code, synopsis_text = synopsis.get_synopsis(temp_c, wet_bulb_c, dew_point_c, rain_rate, wind_knots_2m)
-            update_synopsis_file(synopsis_file_fp, this_uuid, temp_c, wet_bulb_c, dew_point_c, pressure, rain_rate, synopsis_code, synopsis_text)
+            update_synopsis_file(synopsis_file_fp, this_uuid, temp_c, wet_bulb_c, dew_point_c, humidity, pressure, rain_rate, wind_knots_2m, synopsis_code, synopsis_text)
             # Tweet the video
             # tweet_text = cumulus_weather_info['Beaufort'] + ' (max=' + cumulus_weather_info['HighBeaufortToday'] + ')' + \
             #     ', cbase=' + cumulus_weather_info['Cloudbase'].__str__() + ' ' + cumulus_weather_info['CloudbaseUnit'] + \
