@@ -75,9 +75,12 @@ def update_synopsis_file(synopsis_file_fp, this_uuid, temp_c, wet_bulb_c, dew_po
     if temp_c == -999:
         synopsis_code = definitions.ERROR_SYNOPSIS_CODE    # This is not a valid WMO code - also used in cloudmetricsd
         synopsis_text = "Unable to read data from station - all data is invalid"
+        synopsis_str = 'WMO_4680_ERR'           # file (unlike statsd) can handle non-numeric so substitute the -20 value
+    else:
+        synopsis_str ='WMO_4680_%02d' % synopsis_code
 
     rec_tsv = time.ctime() + '\t' + \
-        'WMO_4680_' + synopsis_code.__str__() + '\t' + \
+        synopsis_str + '\t' + \
         synopsis_text + '\t' + \
         temp_c.__str__() + '\t' + \
         wet_bulb_c.__str__() + '\t' + \
