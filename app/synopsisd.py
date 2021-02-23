@@ -15,6 +15,7 @@ import call_rest_api
 import get_cumulus_weather_info
 import get_env
 import get_env_app
+import definitions
 
 # Add a bunch of reliability code to this before deploying
 
@@ -65,11 +66,16 @@ import get_env_app
 #     else:
 #         print(response_dict['status'])
 
-
 # FIXME : leading zero
 # FIXME : UTC
 # Only log the items that directly contribute to the synopsis generation
 def update_synopsis_file(synopsis_file_fp, this_uuid, temp_c, wet_bulb_c, dew_point_c, humidity, pressure, rain_rate, wind_knots_2m, synopsis_code, synopsis_text):
+    # Post an invalid WMO code - a high value will also be highlighted on the Grafana output
+    # There is no WMO code for 'data invalid' so use a 'reserved' one
+    if temp_c == -999:
+        synopsis_code = definitions.ERROR_SYNOPSIS_CODE    # This is not a valid WMO code - also used in cloudmetricsd
+        synopsis_text = "Unable to read data from station - all data is invalid"
+
     rec_tsv = time.ctime() + '\t' + \
         'WMO_4680_' + synopsis_code.__str__() + '\t' + \
         synopsis_text + '\t' + \
@@ -95,6 +101,8 @@ def main():
         verbose = get_env.get_verbose()
         stage = get_env.get_stage()
         cumulusmx_endpoint = get_env.get_cumulusmx_endpoint()
+        # cumulusmx_endpoint = '192.168.1.99' # for testing REST API failure handling
+
         webcam_service_endpoint = get_env.get_webcam_service_endpoint()
 
         video_length_secs = get_env_app.get_video_length()
@@ -131,6 +139,13 @@ def main():
 
             cumulus_weather_info = get_cumulus_weather_info.get_key_weather_variables(cumulusmx_endpoint)     # REST API call
 
+            if cumulus_weather_info is None:    # can't talk to Cumulux
+                print(time.ctime() + ' Error : Aercus to CumulusMX REST API failure')
+                update_synopsis_file(synopsis_file_fp, this_uuid, -999, -999, -999, -999, -999,
+                                 -999, -999, -999, None)
+                time.sleep(120)
+                continue
+
             pressure = float(cumulus_weather_info['Pressure'])
             temp_c = float(cumulus_weather_info['OutdoorTemp'])
             dew_point_c = float(cumulus_weather_info['OutdoorDewpoint'])
@@ -141,7 +156,15 @@ def main():
             wet_bulb_c = wet_bulb.get_wet_bulb(temp_c, pressure, dew_point_c)
 
             synopsis_code, synopsis_text = synopsis.get_synopsis(temp_c, wet_bulb_c, dew_point_c, rain_rate, wind_knots_2m)
-            update_synopsis_file(synopsis_file_fp, this_uuid, temp_c, wet_bulb_c, dew_point_c, humidity, pressure, rain_rate, wind_knots_2m, synopsis_code, synopsis_text)
+
+            # Aercus to CumulusMX USB channel not working
+            if cumulus_weather_info['DataStopped'] == True:
+                print(time.ctime() + ' Error : Aercus to CumulusMX USB connection failure')
+                update_synopsis_file(synopsis_file_fp, this_uuid, -999, -999, -999, -999, -999,
+                                 -999, -999, -999, None)
+            else:
+                update_synopsis_file(synopsis_file_fp, this_uuid, temp_c, wet_bulb_c, dew_point_c, humidity, pressure, rain_rate, wind_knots_2m, synopsis_code, synopsis_text)
+
             # Tweet the video
             # tweet_text = cumulus_weather_info['Beaufort'] + ' (max=' + cumulus_weather_info['HighBeaufortToday'] + ')' + \
             #     ', cbase=' + cumulus_weather_info['Cloudbase'].__str__() + ' ' + cumulus_weather_info['CloudbaseUnit'] + \

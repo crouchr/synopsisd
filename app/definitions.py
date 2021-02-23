@@ -1,0 +1,1 @@
+ERROR_SYNOPSIS_CODE = -20       # used where a WMO code should be but there is invalid data
