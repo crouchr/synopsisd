@@ -68,7 +68,7 @@ import definitions
 
 # FIXME : leading zero
 # FIXME : UTC
-# Only log the items that directly contribute to the synopsis generation
+# The WMO synopsis should only use sensor data that does not need Internet - i.e. totally independent AWS
 def update_synopsis_file(synopsis_file_fp, this_uuid, temp_c, wet_bulb_c, dew_point_c, humidity, pressure, rain_rate, wind_knots_2m, synopsis_code, synopsis_text):
     # Post an invalid WMO code - a high value will also be highlighted on the Grafana output
     # There is no WMO code for 'data invalid' so use a 'reserved' one
@@ -98,7 +98,6 @@ def update_synopsis_file(synopsis_file_fp, this_uuid, temp_c, wet_bulb_c, dew_po
 
 def main():
     try:
-        crf = 19                                # H264 encoding quality parameter
         my_app_name = 'synopsisd'
         version = get_env.get_version()
         verbose = get_env.get_verbose()
@@ -126,10 +125,8 @@ def main():
         print('verbose=' + verbose.__str__())
         print('webcam-service endpoint=' + webcam_service_endpoint)
         print('cumulusmx endpoint=' + cumulusmx_endpoint)
-        # print('twitter-service endpoint=' + get_env.get_twitter_service_endpoint())
         print('min_solar=' + min_solar.__str__())
         print('max_solar=' + max_solar.__str__())
-        # print('mins_between_videos=' + mins_between_videos.__str__())
         print('preamble_secs=' + preamble_secs.__str__())
         print('video_length_secs=' + video_length_secs.__str__())
 
@@ -137,15 +134,12 @@ def main():
 
         print('enter main loop')
         while True:
-            # print(time.ctime())
             this_uuid = str(uuid.uuid4())          # unique uuid per cycle
 
             cumulus_weather_info = get_cumulus_weather_info.get_key_weather_variables(cumulusmx_endpoint)     # REST API call
-
             if cumulus_weather_info is None:    # can't talk to Cumulux
                 print(time.ctime() + ' Error : Aercus to CumulusMX REST API failure')
-                update_synopsis_file(synopsis_file_fp, this_uuid, -999, -999, -999, -999, -999,
-                                 -999, -999, -999, None)
+                update_synopsis_file(synopsis_file_fp, this_uuid, -999, -999, -999, -999, -999, -999, -999, -999, None)
                 time.sleep(120)
                 continue
 
@@ -154,66 +148,22 @@ def main():
             dew_point_c = float(cumulus_weather_info['OutdoorDewpoint'])
             humidity = float(cumulus_weather_info['OutdoorHum'])
             rain_rate = float(cumulus_weather_info['RainRate'])
-            wind_knots_2m = float(cumulus_weather_info['WindAverage']   )  # my vane is 4m above ground not 2m
+            wind_knots_2m = float(cumulus_weather_info['WindAverage'])  # my vane is approx 4m above ground not 2m
 
+            # derived value
             wet_bulb_c = wet_bulb.get_wet_bulb(temp_c, pressure, dew_point_c)
 
+            # determine the WMO synopsis
             synopsis_code, synopsis_text = synopsis.get_synopsis(temp_c, wet_bulb_c, dew_point_c, rain_rate, wind_knots_2m)
 
             # Aercus to CumulusMX USB channel not working
             if cumulus_weather_info['DataStopped'] == True:
                 print(time.ctime() + ' Error : Aercus to CumulusMX USB connection failure')
-                update_synopsis_file(synopsis_file_fp, this_uuid, -999, -999, -999, -999, -999,
-                                 -999, -999, -999, None)
+                update_synopsis_file(synopsis_file_fp, this_uuid, -999, -999, -999, -999, -999, -999, -999, -999, None)
             else:
                 update_synopsis_file(synopsis_file_fp, this_uuid, temp_c, wet_bulb_c, dew_point_c, humidity, pressure, rain_rate, wind_knots_2m, synopsis_code, synopsis_text)
 
-            # Tweet the video
-            # tweet_text = cumulus_weather_info['Beaufort'] + ' (max=' + cumulus_weather_info['HighBeaufortToday'] + ')' + \
-            #     ', cbase=' + cumulus_weather_info['Cloudbase'].__str__() + ' ' + cumulus_weather_info['CloudbaseUnit'] + \
-            #     ', ' + cumulus_weather_info['Pressure'].__str__() + ' ' + cumulus_weather_info['PressUnit'] + \
-            #     ', trend=' + cumulus_weather_info['PressTrend'].__str__() + \
-            #     ', temp=' + cumulus_weather_info['OutdoorTemp'].__str__() + cumulus_weather_info['TempUnit'] + \
-            #     ', wind_chill=' + cumulus_weather_info['WindChill'].__str__() + cumulus_weather_info['TempUnit'] + \
-            #     ', dew_point=' + cumulus_weather_info['OutdoorDewpoint'].__str__() + cumulus_weather_info['TempUnit'] + \
-            #     ', ' + cumulus_weather_info['DominantWindDirection'] + \
-            #     ', last_rain=' + cumulus_weather_info['LastRainTipISO'] + \
-            #     ', rain_rate=' + cumulus_weather_info['RainRate'].__str__() + \
-            #     ', rain_today_mm=' + cumulus_weather_info['RainToday'].__str__() + \
-            #     ', fcast *' + cumulus_weather_info['Forecast'] + '*'\
-            #     ', solar=' + cumulus_weather_info['SolarRad'].__str__()
-            # print(tweet_text)
-
-            # solar = cumulus_weather_info['SolarRad']
-            # # _, solar, sky_condition = get_light_level(this_uuid)
-            # if solar < float(min_solar) or solar > float(max_solar):                  # do not bother taking video if it is too dark
-            #     # print(time.ctime() + ' : light level is below ' + min_solar.__str__() + ' W, so sleeping... solar=' + solar.__str__())
-            #     send_tweet(tweet_text, this_uuid)
-            # else:
-            #     webcam_query['uuid'] = this_uuid.__str__()
-            #     print('Requesting webcam mp4 video and a jpg from webcam-service, uuid=' + this_uuid.__str__())
-            #     status_code, response_dict = call_rest_api.call_rest_api(get_env.get_webcam_service_endpoint() + '/get_video', webcam_query)
-            #     pprint(response_dict)
-            #
-            #     if response_dict['status'] != 'OK':
-            #         print(response_dict['status'] + ', sleeping for 2 mins...')
-            #         time.sleep(120)
-            #         continue    # go back to start of infinite loop
-
-                # Video/image grabbed OK
-                # mp4_filename = response_dict['video_filename']
-                # jpeg_filename = response_dict['jpeg_filename']
-                #
-                # print('wrote webcam video to : ' + mp4_filename + ', uuid=' + this_uuid)
-                # print('wrote webcam jpeg to  : ' + jpeg_filename + ', uuid=' + this_uuid)
-                #
-                # filename = mp4_filename.split('/')[-1]      # ignore the filepath
-                # tweet_text = tweet_text + ' ' + filename
-                # send_tweet_with_video(tweet_text, mp4_filename, this_uuid)
-
             sleep_secs = mins_between_updates * 60
-            # print('----------------------------------------------')
-            # print(time.ctime() + ' sleeping for ' + sleep_secs.__str__() + ' seconds...')
             time.sleep(sleep_secs)
 
     except Exception as e:
