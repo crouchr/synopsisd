@@ -35,24 +35,6 @@ def get_stage():
     return stage
 
 
-def get_webcam_service_endpoint():
-    if 'STAGE' in os.environ and os.environ['STAGE'] == 'PRD':
-        webcam_service_endpoint_base = 'http://webcam-service:9504'
-    else:
-        webcam_service_endpoint_base = 'http://192.168.1.180:9504'
-
-    return webcam_service_endpoint_base
-
-
-def get_twitter_service_endpoint():
-    if 'STAGE' in os.environ and os.environ['STAGE'] == 'PRD':
-        twitter_service_endpoint_base = 'http://webcam-service:9506'
-    else:
-        twitter_service_endpoint_base = 'http://192.168.1.180:9506'
-
-    return twitter_service_endpoint_base
-
-
 def get_cumulusmx_endpoint():
     if 'STAGE' in os.environ and os.environ['STAGE'] == 'PRD':
         cumulusmx_endpoint = 'http://cumulusmx:8998/api/data/currentdata'
@@ -67,5 +49,22 @@ def get_cumulusmx_endpoint():
 #         telegraf_endpoint = os.environ['TELEGRAF_ENDPOINT']
 #     else:
 #         telegraf_endpoint = '192.168.1.180'
+#
+#    return telegraf_endpoint
 
-    return telegraf_endpoint
+# def get_webcam_service_endpoint():
+#     if 'STAGE' in os.environ and os.environ['STAGE'] == 'PRD':
+#         webcam_service_endpoint_base = 'http://webcam-service:9504'
+#     else:
+#         webcam_service_endpoint_base = 'http://192.168.1.180:9504'
+#
+#     return webcam_service_endpoint_base
+#
+#
+# def get_twitter_service_endpoint():
+#     if 'STAGE' in os.environ and os.environ['STAGE'] == 'PRD':
+#         twitter_service_endpoint_base = 'http://webcam-service:9506'
+#     else:
+#         twitter_service_endpoint_base = 'http://192.168.1.180:9506'
+#
+#     return twitter_service_endpoint_base

@@ -1,1 +1,2 @@
-ERROR_SYNOPSIS_CODE = -20       # used where a WMO code should be but there is invalid data
+# No need to change these values
+SYNOPSIS_ROOT = '/data/metminiwx/synopsis/'

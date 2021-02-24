@@ -15,6 +15,7 @@ import call_rest_api
 import get_cumulus_weather_info
 import get_env
 import get_env_app
+import definitions
 
 # Add a bunch of reliability code to this before deploying
 
@@ -103,32 +104,34 @@ def main():
         cumulusmx_endpoint = get_env.get_cumulusmx_endpoint()
         # cumulusmx_endpoint = '192.168.1.99' # for testing REST API failure handling
 
-        webcam_service_endpoint = get_env.get_webcam_service_endpoint()
-
-        video_length_secs = get_env_app.get_video_length()
-        preamble_secs = get_env_app.get_video_preamble()
-        min_solar = get_env_app.get_min_solar()
-        max_solar = get_env_app.get_max_solar()
+        # webcam_service_endpoint = get_env.get_webcam_service_endpoint()
+        # video_length_secs = get_env_app.get_video_length()
+        # preamble_secs = get_env_app.get_video_preamble()
+        # min_solar = get_env_app.get_min_solar()
+        # max_solar = get_env_app.get_max_solar()
         mins_between_updates = get_env_app.get_mins_between_updates()
 
-        webcam_query = {}                       # API call to webcam-service
-        webcam_query['app_name'] = my_app_name
-        webcam_query['video_length_secs'] = video_length_secs
-        webcam_query['preamble_secs'] = preamble_secs
+        # webcam_query = {}                       # API call to webcam-service
+        # webcam_query['app_name'] = my_app_name
+        # webcam_query['video_length_secs'] = video_length_secs
+        # webcam_query['preamble_secs'] = preamble_secs
 
         print(my_app_name + ' started, version=' + version)
         print('stage=' + stage)
         if stage == 'DEV':
             verbose = True
         print('verbose=' + verbose.__str__())
-        print('webcam-service endpoint=' + webcam_service_endpoint)
         print('cumulusmx endpoint=' + cumulusmx_endpoint)
-        print('min_solar=' + min_solar.__str__())
-        print('max_solar=' + max_solar.__str__())
-        print('preamble_secs=' + preamble_secs.__str__())
-        print('video_length_secs=' + video_length_secs.__str__())
 
-        synopsis_file_fp = open('synopsis.tsv', 'a')        # file needs to exist / be touched before this script runs
+        # print('webcam-service endpoint=' + webcam_service_endpoint)
+        # print('min_solar=' + min_solar.__str__())
+        # print('max_solar=' + max_solar.__str__())
+        # print('preamble_secs=' + preamble_secs.__str__())
+        # print('video_length_secs=' + video_length_secs.__str__())
+
+        synopsis_filename = definitions.SYNOPSIS_ROOT + 'synopsis.tsv'
+        print('synopsis_filename=' + synopsis_filename)
+        synopsis_file_fp = open(synopsis_filename, 'a')        # file does not need to exist / be touched before this script runs
 
         print('enter main loop')
         while True:
