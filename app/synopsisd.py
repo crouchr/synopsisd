@@ -15,10 +15,8 @@ import call_rest_api
 import get_cumulus_weather_info
 import get_env
 import get_env_app
-import definitions
 
 # Add a bunch of reliability code to this before deploying
-
 
 
 # def send_tweet(tweet_text, uuid):
@@ -69,15 +67,14 @@ import definitions
 # FIXME : leading zero
 # FIXME : UTC
 # The WMO synopsis should only use sensor data that does not need Internet - i.e. totally independent AWS
-def update_synopsis_file(synopsis_file_fp, this_uuid, temp_c, wet_bulb_c, dew_point_c, humidity, pressure, rain_rate, wind_knots_2m, synopsis_code, synopsis_text):
+def update_synopsis_file(synopsis_file_fp, this_uuid, temp_c, wet_bulb_c, dew_point_c, humidity, pressure, rain_rate, wind_knots_2m, synopsis_code, synopsis_text, forecast):
     # Post an invalid WMO code - a high value will also be highlighted on the Grafana output
     # There is no WMO code for 'data invalid' so use a 'reserved' one
     if temp_c == -999:
-        synopsis_code = definitions.ERROR_SYNOPSIS_CODE    # This is not a valid WMO code - also used in cloudmetricsd
         synopsis_text = "Unable to read data from station - all data is invalid"
-        synopsis_str = 'WMO_4680_ERR'           # file (unlike statsd) can handle non-numeric so substitute the -20 value
+        synopsis_str = 'WMO_4680_ERR'
     else:
-        synopsis_str ='WMO_4680_%02d' % synopsis_code
+        synopsis_str = 'WMO_4680_%02d' % synopsis_code
 
     rec_tsv = time.ctime() + '\t' + \
         synopsis_str + '\t' + \
@@ -89,6 +86,7 @@ def update_synopsis_file(synopsis_file_fp, this_uuid, temp_c, wet_bulb_c, dew_po
         pressure.__str__() + '\t' + \
         rain_rate.__str__() + '\t' + \
         wind_knots_2m.__str__() + '\t' + \
+        forecast.__str__() + '\t' + \
         this_uuid
 
     print(rec_tsv)
@@ -149,6 +147,7 @@ def main():
             humidity = float(cumulus_weather_info['OutdoorHum'])
             rain_rate = float(cumulus_weather_info['RainRate'])
             wind_knots_2m = float(cumulus_weather_info['WindAverage'])  # my vane is approx 4m above ground not 2m
+            forecast = cumulus_weather_info['Forecast']
 
             # derived value
             wet_bulb_c = wet_bulb.get_wet_bulb(temp_c, pressure, dew_point_c)
@@ -159,9 +158,9 @@ def main():
             # Aercus to CumulusMX USB channel not working
             if cumulus_weather_info['DataStopped'] == True:
                 print(time.ctime() + ' Error : Aercus to CumulusMX USB connection failure')
-                update_synopsis_file(synopsis_file_fp, this_uuid, -999, -999, -999, -999, -999, -999, -999, -999, None)
+                update_synopsis_file(synopsis_file_fp, this_uuid, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999)
             else:
-                update_synopsis_file(synopsis_file_fp, this_uuid, temp_c, wet_bulb_c, dew_point_c, humidity, pressure, rain_rate, wind_knots_2m, synopsis_code, synopsis_text)
+                update_synopsis_file(synopsis_file_fp, this_uuid, temp_c, wet_bulb_c, dew_point_c, humidity, pressure, rain_rate, wind_knots_2m, synopsis_code, synopsis_text, forecast)
 
             sleep_secs = mins_between_updates * 60
             time.sleep(sleep_secs)
