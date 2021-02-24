@@ -2,7 +2,7 @@
 # based on Debian Buster
 FROM python:3.8.5-buster
 LABEL author="Richard Crouch"
-LABEL description="Webcamd Daemon"
+LABEL description="Synopsisd Daemon"
 
 # generate logs in unbuffered mode
 ENV PYTHONUNBUFFERED=1
@@ -23,4 +23,4 @@ WORKDIR /app
 #RUN echo date > /tmp/built.txt
 
 # run Python unbuffered so the logs are flushed
-CMD ["python3", "-u", "webcamd.py"]
+CMD ["python3", "-u", "synopsisd.py"]
