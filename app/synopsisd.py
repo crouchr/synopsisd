@@ -68,7 +68,7 @@ import definitions
 # FIXME : leading zero
 # FIXME : UTC
 # The WMO synopsis should only use sensor data that does not need Internet - i.e. totally independent AWS
-def update_synopsis_file(synopsis_file_fp, this_uuid, temp_c, wet_bulb_c, dew_point_c, humidity, pressure, rain_rate, wind_knots_2m, solar, synopsis_code, synopsis_text, forecast):
+def update_synopsis_file(synopsis_file_fp, this_uuid, temp_c, wet_bulb_c, dew_point_c, humidity, pressure, rain_rate, dominant_wind_direction, wind_knots_2m, solar, synopsis_code, synopsis_text, forecast):
     # Post an invalid WMO code - a high value will also be highlighted on the Grafana output
     # There is no WMO code for 'data invalid' so use a 'reserved' one
     if temp_c == -999:
@@ -86,6 +86,7 @@ def update_synopsis_file(synopsis_file_fp, this_uuid, temp_c, wet_bulb_c, dew_po
         humidity.__str__() + '\t' + \
         pressure.__str__() + '\t' + \
         solar.__str__() + '\t' + \
+        dominant_wind_direction.__str__() + '\t' + \
         wind_knots_2m.__str__() + '\t' + \
         rain_rate.__str__() + '\t' + \
         forecast.__str__() + '\t' + \
@@ -153,6 +154,7 @@ def main():
             wind_knots_2m = float(cumulus_weather_info['WindAverage'])  # my vane is approx 4m above ground not 2m
             forecast = cumulus_weather_info['Forecast']
             solar = int(cumulus_weather_info['SolarRad'])               # contribute to is_fog() ?
+            dominant_wind_direction = cumulus_weather_info['DominantWindDirection']
 
             # derived value
             wet_bulb_c = wet_bulb.get_wet_bulb(temp_c, pressure, dew_point_c)
@@ -167,7 +169,7 @@ def main():
                 print(time.ctime() + ' Error : Aercus to CumulusMX USB connection failure')
                 update_synopsis_file(synopsis_file_fp, this_uuid, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999)
             else:
-                update_synopsis_file(synopsis_file_fp, this_uuid, temp_c, wet_bulb_c, dew_point_c, humidity, pressure, rain_rate, wind_knots_2m, solar, synopsis_code, synopsis_text, forecast)
+                update_synopsis_file(synopsis_file_fp, this_uuid, temp_c, wet_bulb_c, dew_point_c, humidity, pressure, rain_rate, dominant_wind_direction, wind_knots_2m, solar, synopsis_code, synopsis_text, forecast)
 
             sleep_secs = mins_between_updates * 60
             time.sleep(sleep_secs)
