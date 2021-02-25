@@ -99,7 +99,6 @@ def update_synopsis_file(synopsis_file_fp, this_uuid, temp_c, wet_bulb_c, dew_po
     synopsis_file_fp.write(rec_tsv + '\n')
     synopsis_file_fp.flush()
 
-
 def main():
     try:
         my_app_name = 'synopsisd'
