@@ -68,7 +68,7 @@ import definitions
 # FIXME : leading zero
 # FIXME : UTC
 # The WMO synopsis should only use sensor data that does not need Internet - i.e. totally independent AWS
-def update_synopsis_file(synopsis_file_fp, this_uuid, temp_c, wet_bulb_c, dew_point_c, humidity, pressure, rain_rate, dominant_wind_direction, wind_knots_2m, solar, synopsis_code, synopsis_text, forecast):
+def update_synopsis_file(synopsis_file_fp, this_uuid, temp_c, wet_bulb_c, dew_point_c, humidity, pressure, rain_rate, dominant_wind_direction, wind_knots_2m, recent_max_gust, solar, synopsis_code, synopsis_text, forecast):
     # Post an invalid WMO code - a high value will also be highlighted on the Grafana output
     # There is no WMO code for 'data invalid' so use a 'reserved' one
     if temp_c == -999:
@@ -79,7 +79,7 @@ def update_synopsis_file(synopsis_file_fp, this_uuid, temp_c, wet_bulb_c, dew_po
 
     rec_tsv = time.ctime() + '\t' + \
         synopsis_str + '\t' + \
-        synopsis_text + '\t' + \
+        '"' + synopsis_text + '"' + '\t' + \
         temp_c.__str__() + '\t' + \
         wet_bulb_c.__str__() + '\t' + \
         dew_point_c.__str__() + '\t' + \
@@ -88,9 +88,9 @@ def update_synopsis_file(synopsis_file_fp, this_uuid, temp_c, wet_bulb_c, dew_po
         solar.__str__() + '\t' + \
         dominant_wind_direction.__str__() + '\t' + \
         wind_knots_2m.__str__() + '\t' + \
+        recent_max_gust.__str__() + '\t' + \
         rain_rate.__str__() + '\t' + \
-        forecast.__str__() + '\t' + \
-        this_uuid
+        '"' + forecast.__str__() + '"'
 
     print(rec_tsv)
     synopsis_file_fp.write(rec_tsv + '\n')
@@ -135,7 +135,7 @@ def main():
         print('synopsis_filename=' + synopsis_filename)
         synopsis_file_fp = open(synopsis_filename, 'a')        # file does not need to exist / be touched before this script runs
 
-        print('enter main loop')
+        print('entering main loop...')
         while True:
             this_uuid = str(uuid.uuid4())          # unique uuid per cycle
 
@@ -155,6 +155,7 @@ def main():
             forecast = cumulus_weather_info['Forecast']
             solar = int(cumulus_weather_info['SolarRad'])               # contribute to is_fog() ?
             dominant_wind_direction = cumulus_weather_info['DominantWindDirection']
+            recent_max_gust = float(cumulus_weather_info['Recentmaxgust'])
 
             # derived value
             wet_bulb_c = wet_bulb.get_wet_bulb(temp_c, pressure, dew_point_c)
@@ -167,9 +168,9 @@ def main():
             # Aercus to CumulusMX USB channel not working
             if cumulus_weather_info['DataStopped'] == True:
                 print(time.ctime() + ' Error : Aercus to CumulusMX USB connection failure')
-                update_synopsis_file(synopsis_file_fp, this_uuid, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999)
+                update_synopsis_file(synopsis_file_fp, this_uuid, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999)
             else:
-                update_synopsis_file(synopsis_file_fp, this_uuid, temp_c, wet_bulb_c, dew_point_c, humidity, pressure, rain_rate, dominant_wind_direction, wind_knots_2m, solar, synopsis_code, synopsis_text, forecast)
+                update_synopsis_file(synopsis_file_fp, this_uuid, temp_c, wet_bulb_c, dew_point_c, humidity, pressure, rain_rate, dominant_wind_direction, wind_knots_2m, recent_max_gust, solar, synopsis_code, synopsis_text, forecast)
 
             sleep_secs = mins_between_updates * 60
             time.sleep(sleep_secs)
