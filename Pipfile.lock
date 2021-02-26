@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "8804f4b8e3086330d84b37378e44d0eb07fbb311f5d4c34153ab74198c1ef095"
+            "sha256": "d547f1ada81af02e3395530ef39782ebc45ece676fe271866f0a1adec9e84855"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -60,11 +60,11 @@
         },
         "importlib-metadata": {
             "hashes": [
-                "sha256:ace61d5fc652dc280e7b6b4ff732a9c2d40db2c0f92bc6cb74e07b73d53a1771",
-                "sha256:fa5daa4477a7414ae34e95942e4dd07f62adf589143c875c133c1e53c4eff38d"
+                "sha256:24499ffde1b80be08284100393955842be4a59c7c16bbf2738aad0e464a8e0aa",
+                "sha256:c6af5dbf1126cd959c4a8d8efd61d4d3c83bddb0459a17e554284a077574b614"
             ],
             "markers": "python_version < '3.8'",
-            "version": "==3.4.0"
+            "version": "==3.7.0"
         },
         "importlib-resources": {
             "hashes": [
@@ -152,11 +152,11 @@
         },
         "metfuncs": {
             "hashes": [
-                "sha256:5b21f583fa6f0379d6429e4fa00bee0b8095c2360ccb5064e6d94638da49d880",
-                "sha256:cfc6b0fc009d643ab8f45322fd09f1e0b2ed669c7490b31d76f85f8a476e4aeb"
+                "sha256:8aa2d9705c1dd5a1ec8683b64d0d205d11972233b1141c53e7b5718780257023",
+                "sha256:8db9722b10a90ed054f89fe71fe02dd8eab73c03bdbdd082e1e82fc27b5d147f"
             ],
             "index": "ermin",
-            "version": "==1.0.14"
+            "version": "==1.0.15"
         },
         "metpy": {
             "hashes": [
@@ -410,11 +410,11 @@
         },
         "xarray": {
             "hashes": [
-                "sha256:38e8439d6c91bcd5b7c0fca349daf8e0643ac68850c987262d53526e9d7d01e4",
-                "sha256:88d0f80145999443730f87c7575e426d377f0b62677d915f21059cc364b4a1e1"
+                "sha256:9c2edad2a4e588f9117c666a4249920b9717fb75703b96998cf65fcd4f60551f",
+                "sha256:ce204fb5015c3d382036f7c065c927df5684276976810aef43d78908c3ceb440"
             ],
-            "markers": "python_version >= '3.6'",
-            "version": "==0.16.2"
+            "markers": "python_version >= '3.7'",
+            "version": "==0.17.0"
         },
         "zipp": {
             "hashes": [
