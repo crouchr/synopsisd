@@ -77,6 +77,9 @@ def update_synopsis_file(synopsis_file_fp, this_uuid, temp_c, wet_bulb_c, dew_po
     else:
         synopsis_str = 'WMO_4680_%02d' % synopsis_code
 
+    if synopsis_text == 'No significant weather observed':
+        synopsis_text = '---'
+
     rec_tsv = time.ctime() + '\t' + \
         synopsis_str + '\t' + \
         '"' + synopsis_text + '"' + '\t' + \
@@ -164,20 +167,18 @@ def main():
             recent_max_gust = float(cumulus_weather_info['Recentmaxgust'])
             uv_index = float(cumulus_weather_info['UVindex'])
             feels_like_c = float(cumulus_weather_info['FeelsLike'])
-            last_rain_tip = cumulus_weather_info['LastRainTipISO']  # feed into FOG ?
-            rain_last_24h = cumulus_weather_info['RainLast24Hour']  # feed into FOG ?
-            version = cumulus_weather_info['Version']   # CumulusMX version
+            last_rain_tip = cumulus_weather_info['LastRainTipISO']      # feed into FOG ?
+            rain_last_24h = cumulus_weather_info['RainLast24Hour']      # feed into FOG ?
+            version = cumulus_weather_info['Version']                   # CumulusMX version
 
             # derived value
             wet_bulb_c = wet_bulb.get_wet_bulb(temp_c, pressure, dew_point_c)
 
             # determine the WMO synopsis
-            # synopsis_code, synopsis_text = synopsis.get_synopsis(temp_c, wet_bulb_c, dew_point_c, rain_rate, wind_knots_2m, solar)
             synopsis_code, synopsis_text = synopsis.get_synopsis(temp_c, wet_bulb_c, dew_point_c, rain_rate, wind_knots_2m, solar)
-            # solar not supported yrt in metfuncs
 
             # Aercus to CumulusMX USB channel not working
-            if cumulus_weather_info['DataStopped'] == True:
+            if cumulus_weather_info['DataStopped']:
                 print(time.ctime() + ' Error : Aercus to CumulusMX USB connection failure')
                 update_synopsis_file(synopsis_file_fp, this_uuid, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999)
             else:
