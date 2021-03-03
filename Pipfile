@@ -11,10 +11,11 @@ name = "ermin"
 
 [packages]
 requests = "==2.25.1"
-metfuncs = {version="1.0.18", index="ermin"}
+metfuncs = {version="1.0.21", index="ermin"}
 uuid = "==1.30"
 numpy = "==1.20.1"
 metpy = "==1.0"
+pysolar = "==0.9"
 
 [dev-packages]
 

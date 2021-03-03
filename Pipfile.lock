@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "d2bfa72de37eef4c8b86b238e70fe9a493922ee2a8ac7448627b14be8cf0269d"
+            "sha256": "302e77374bc21a1d7a2cd5eac8378c5a5a7357dcefe63c301aa384c96c76409d"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -152,11 +152,11 @@
         },
         "metfuncs": {
             "hashes": [
-                "sha256:62b0e599a98b5130138faafd067112895669392583845aa1515f396f5c7769f4",
-                "sha256:bda42db3eb13c34ee2e2df82fe85ecb8b48b8179c2c24eae1852d3c632dccab6"
+                "sha256:9c0146c750413e55bd960b0c6fee0aac21f5b5daaf5adfe7b10af9a482befbe0",
+                "sha256:c6532519fb15899c24f3b706faf5bd1d0cf71f745d8c420f54c267fe3f61bc3b"
             ],
             "index": "ermin",
-            "version": "==1.0.17"
+            "version": "==1.0.22"
         },
         "metpy": {
             "hashes": [
@@ -318,6 +318,14 @@
             ],
             "markers": "python_version >= '3.5'",
             "version": "==2.6.1.post1"
+        },
+        "pysolar": {
+            "hashes": [
+                "sha256:101e0bc40ed14c1b46b5490dd6253f7e85b584d5c21066a341704cdf1004b250",
+                "sha256:6015e5e5691f3fc3eafc67881b1e767fc204a4d23546f80558eccd5b23ad6ec2"
+            ],
+            "index": "pypi",
+            "version": "==0.9"
         },
         "python-dateutil": {
             "hashes": [

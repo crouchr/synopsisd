@@ -9,6 +9,9 @@ from pprint import pprint
 # artifacts
 import wet_bulb
 import synopsis
+import solar_funcs
+import okta_funcs
+import solar_rad_expected
 
 import call_rest_api
 # import definitions
@@ -68,7 +71,7 @@ import definitions
 # FIXME : leading zero
 # FIXME : UTC
 # The WMO synopsis should only use sensor data that does not need Internet - i.e. totally independent AWS
-def update_synopsis_file(synopsis_file_fp, this_uuid, temp_c, wet_bulb_c, dew_point_c, feels_like_c, humidity, pressure, rain_rate, last_rain_tip, rain_last_24h, dominant_wind_direction, wind_knots_2m, recent_max_gust, solar, uv_index, synopsis_code, synopsis_text, forecast, version):
+def update_synopsis_file(synopsis_file_fp, this_uuid, temp_c, wet_bulb_c, dew_point_c, feels_like_c, humidity, pressure, rain_rate, last_rain_tip, rain_last_24h, dominant_wind_direction, wind_knots_2m, recent_max_gust, solar, uv_index, okta, synopsis_code, synopsis_text, forecast, version):
     # Post an invalid WMO code - a high value will also be highlighted on the Grafana output
     # There is no WMO code for 'data invalid' so use a 'reserved' one
     if temp_c == -999:
@@ -77,7 +80,7 @@ def update_synopsis_file(synopsis_file_fp, this_uuid, temp_c, wet_bulb_c, dew_po
     else:
         synopsis_str = 'WMO_4680_%02d' % synopsis_code
 
-    if synopsis_text == 'No significant weather observed':
+    if synopsis_text == 'No significant weather observed' or synopsis_text == '-None-':
         synopsis_text = '---'
 
     rec_tsv = time.ctime() + '\t' + \
@@ -94,13 +97,17 @@ def update_synopsis_file(synopsis_file_fp, this_uuid, temp_c, wet_bulb_c, dew_po
         dominant_wind_direction.__str__() + '\t' + \
         wind_knots_2m.__str__() + '\t' + \
         recent_max_gust.__str__() + '\t' + \
+        okta.__str__() + '\t' + \
         rain_rate.__str__() + '\t' + \
         last_rain_tip.__str__() + '\t' + \
         rain_last_24h.__str__() + '\t' + \
         '"' + forecast.__str__() + '"' + '\t' + \
         version.__str__()
 
-    print(rec_tsv)
+
+    rec_tsv_no_tabs = rec_tsv.replace('\t', ' ')    # nicer output in PaperTrail
+    print(rec_tsv_no_tabs)
+
     synopsis_file_fp.write(rec_tsv + '\n')
     synopsis_file_fp.flush()
 
@@ -120,6 +127,8 @@ def main():
         # min_solar = get_env_app.get_min_solar()
         # max_solar = get_env_app.get_max_solar()
         mins_between_updates = get_env_app.get_mins_between_updates()
+        lat = 51.4151  # Stockcross
+        lon = -1.3776  # Stockcross
 
         # webcam_query = {}                       # API call to webcam-service
         # webcam_query['app_name'] = my_app_name
@@ -174,15 +183,20 @@ def main():
             # derived value
             wet_bulb_c = wet_bulb.get_wet_bulb(temp_c, pressure, dew_point_c)
 
+            altitude_deg = solar_rad_expected.calc_altitude(lat, lon)
+            solar_radiation_theoretical = solar_rad_expected.get_solar_radiation_theoretical(altitude_deg)
+            cloud_coverage_percent = solar_rad_expected.calc_cloud_coverage(solar, solar_radiation_theoretical)
+            okta = okta_funcs.coverage_to_okta(cloud_coverage_percent)
+
             # determine the WMO synopsis
             synopsis_code, synopsis_text = synopsis.get_synopsis(temp_c, wet_bulb_c, dew_point_c, rain_rate, wind_knots_2m, solar)
 
             # Aercus to CumulusMX USB channel not working
             if cumulus_weather_info['DataStopped']:
                 print(time.ctime() + ' Error : Aercus to CumulusMX USB connection failure')
-                update_synopsis_file(synopsis_file_fp, this_uuid, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999)
+                update_synopsis_file(synopsis_file_fp, this_uuid, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999)
             else:
-                update_synopsis_file(synopsis_file_fp, this_uuid, temp_c, wet_bulb_c, dew_point_c, feels_like_c, humidity, pressure, rain_rate, last_rain_tip, rain_last_24h, dominant_wind_direction, wind_knots_2m, recent_max_gust, solar, uv_index, synopsis_code, synopsis_text, forecast, version)
+                update_synopsis_file(synopsis_file_fp, this_uuid, temp_c, wet_bulb_c, dew_point_c, feels_like_c, humidity, pressure, rain_rate, last_rain_tip, rain_last_24h, dominant_wind_direction, wind_knots_2m, recent_max_gust, solar, uv_index, okta, synopsis_code, synopsis_text, forecast, version)
 
             sleep_secs = mins_between_updates * 60
             time.sleep(sleep_secs)
