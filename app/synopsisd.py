@@ -71,7 +71,7 @@ import definitions
 # FIXME : leading zero
 # FIXME : UTC
 # The WMO synopsis should only use sensor data that does not need Internet - i.e. totally independent AWS
-def update_synopsis_file(synopsis_file_fp, this_uuid, temp_c, wet_bulb_c, dew_point_c, feels_like_c, humidity, pressure, rain_rate, last_rain_tip, rain_last_24h, dominant_wind_direction, wind_knots_2m, recent_max_gust, solar, uv_index, okta, synopsis_code, synopsis_text, forecast, version):
+def update_synopsis_file(synopsis_file_fp, this_uuid, temp_c, wet_bulb_c, dew_point_c, feels_like_c, humidity, pressure, rain_rate, last_rain_tip, rain_last_24h, dominant_wind_direction, wind_knots_2m, recent_max_gust, solar, uv_index, okta, okta_text, synopsis_code, synopsis_text, forecast, version):
     # Post an invalid WMO code - a high value will also be highlighted on the Grafana output
     # There is no WMO code for 'data invalid' so use a 'reserved' one
     if temp_c == -999:
@@ -98,6 +98,7 @@ def update_synopsis_file(synopsis_file_fp, this_uuid, temp_c, wet_bulb_c, dew_po
         wind_knots_2m.__str__() + '\t' + \
         recent_max_gust.__str__() + '\t' + \
         okta.__str__() + '\t' + \
+        okta_text.__str__() + '\t' + \
         rain_rate.__str__() + '\t' + \
         last_rain_tip.__str__() + '\t' + \
         rain_last_24h.__str__() + '\t' + \
@@ -171,7 +172,7 @@ def main():
             rain_rate = float(cumulus_weather_info['RainRate'])
             wind_knots_2m = float(cumulus_weather_info['WindAverage'])  # my vane is approx 4m above ground not 2m
             forecast = cumulus_weather_info['Forecast']
-            solar = int(cumulus_weather_info['SolarRad'])               # contribute to is_fog() ?
+            solar = int(cumulus_weather_info['SolarRad'])               # contributes to is_fog()
             dominant_wind_direction = cumulus_weather_info['DominantWindDirection']
             recent_max_gust = float(cumulus_weather_info['Recentmaxgust'])
             uv_index = float(cumulus_weather_info['UVindex'])
@@ -183,10 +184,14 @@ def main():
             # derived value
             wet_bulb_c = wet_bulb.get_wet_bulb(temp_c, pressure, dew_point_c)
 
+            # solar geometry
             altitude_deg = solar_rad_expected.calc_altitude(lat, lon)
             solar_radiation_theoretical = solar_rad_expected.get_solar_radiation_theoretical(altitude_deg)
+
+            # derived cloud coverage estimate
             cloud_coverage_percent = solar_rad_expected.calc_cloud_coverage(solar, solar_radiation_theoretical)
             okta = okta_funcs.coverage_to_okta(cloud_coverage_percent)
+            okta_text = okta_funcs.convert_okta_to_cloud_cover(okta)[0]
 
             # determine the WMO synopsis
             synopsis_code, synopsis_text = synopsis.get_synopsis(temp_c, wet_bulb_c, dew_point_c, rain_rate, wind_knots_2m, solar)
@@ -194,9 +199,9 @@ def main():
             # Aercus to CumulusMX USB channel not working
             if cumulus_weather_info['DataStopped']:
                 print(time.ctime() + ' Error : Aercus to CumulusMX USB connection failure')
-                update_synopsis_file(synopsis_file_fp, this_uuid, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999)
+                update_synopsis_file(synopsis_file_fp, this_uuid, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999)
             else:
-                update_synopsis_file(synopsis_file_fp, this_uuid, temp_c, wet_bulb_c, dew_point_c, feels_like_c, humidity, pressure, rain_rate, last_rain_tip, rain_last_24h, dominant_wind_direction, wind_knots_2m, recent_max_gust, solar, uv_index, okta, synopsis_code, synopsis_text, forecast, version)
+                update_synopsis_file(synopsis_file_fp, this_uuid, temp_c, wet_bulb_c, dew_point_c, feels_like_c, humidity, pressure, rain_rate, last_rain_tip, rain_last_24h, dominant_wind_direction, wind_knots_2m, recent_max_gust, solar, uv_index, okta, okta_text, synopsis_code, synopsis_text, forecast, version)
 
             sleep_secs = mins_between_updates * 60
             time.sleep(sleep_secs)
