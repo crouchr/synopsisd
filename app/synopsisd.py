@@ -6,19 +6,20 @@ import uuid
 import traceback
 from pprint import pprint
 
-# artifacts
+# artifacts (metfuncs)
 import wet_bulb
 import synopsis
-import solar_funcs
 import okta_funcs
 import solar_rad_expected
 
-import call_rest_api
-# import definitions
+# artifacts (metrestapi)
+import cumulus_comms
+
 import get_cumulus_weather_info
 import get_env
 import get_env_app
 import definitions
+
 
 # Add a bunch of reliability code to this before deploying
 
@@ -105,7 +106,6 @@ def update_synopsis_file(synopsis_file_fp, this_uuid, temp_c, wet_bulb_c, dew_po
         '"' + forecast.__str__() + '"' + '\t' + \
         version.__str__()
 
-
     rec_tsv_no_tabs = rec_tsv.replace('\t', ' ')    # nicer output in PaperTrail
     print(rec_tsv_no_tabs)
 
@@ -159,11 +159,15 @@ def main():
 
             cumulus_weather_info = get_cumulus_weather_info.get_key_weather_variables(cumulusmx_endpoint)     # REST API call
             # cumulus_weather_info = None
-            if cumulus_weather_info is None:    # can't talk to Cumulux
-                print(time.ctime() + ' Error : Aercus to CumulusMX REST API failure')
-                update_synopsis_file(synopsis_file_fp, this_uuid, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, '---', None)
-                time.sleep(120)
+            if cumulus_weather_info is None:    # can't talk to CumulusMX
+                print('Error: CumulusMX did not return valid data')
+                cumulus_comms.wait_until_cumulus_data_ok(cumulusmx_endpoint)  # loop until CumulusMX data is OK
                 continue
+
+                # print(time.ctime() + ' Error : Aercus to CumulusMX REST API failure')
+                # update_synopsis_file(synopsis_file_fp, this_uuid, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, '---', None)
+                # time.sleep(120)
+                # continue
 
             pressure = float(cumulus_weather_info['Pressure'])
             temp_c = float(cumulus_weather_info['OutdoorTemp'])
@@ -199,7 +203,7 @@ def main():
             # Aercus to CumulusMX USB channel not working
             if cumulus_weather_info['DataStopped']:
                 print(time.ctime() + ' Error : Aercus to CumulusMX USB connection failure')
-                update_synopsis_file(synopsis_file_fp, this_uuid, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999)
+                update_synopsis_file(synopsis_file_fp, this_uuid, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999)
             else:
                 update_synopsis_file(synopsis_file_fp, this_uuid, temp_c, wet_bulb_c, dew_point_c, feels_like_c, humidity, pressure, rain_rate, last_rain_tip, rain_last_24h, dominant_wind_direction, wind_knots_2m, recent_max_gust, solar, uv_index, okta, okta_text, synopsis_code, synopsis_text, forecast, version)
 

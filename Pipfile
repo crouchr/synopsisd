@@ -12,6 +12,7 @@ name = "ermin"
 [packages]
 requests = "==2.25.1"
 metfuncs = {version="1.0.21", index="ermin"}
+metrestapi = {version="1.0.4", index="ermin"}
 uuid = "==1.30"
 numpy = "==1.20.1"
 metpy = "==1.0"
@@ -21,3 +22,4 @@ pysolar = "==0.9"
 
 [requires]
 python_version = "3.7"
+
