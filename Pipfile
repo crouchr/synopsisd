@@ -11,7 +11,7 @@ name = "ermin"
 
 [packages]
 requests = "==2.25.1"
-metfuncs = {version="1.0.21", index="ermin"}
+metfuncs = {version="1.0.23", index="ermin"}
 metrestapi = {version="1.0.5", index="ermin"}
 uuid = "==1.30"
 numpy = "==1.20.1"

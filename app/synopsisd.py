@@ -23,53 +23,6 @@ import definitions
 
 # Add a bunch of reliability code to this before deploying
 
-
-# def send_tweet(tweet_text, uuid):
-#     """
-#     Send a Tweet - i.e. not enough light etc, so just send the met info
-#     """
-#     query = {}                                  # API call to twitter-service
-#     query['app_name'] = 'webcamd'
-#     query['uuid'] = uuid
-#     query['tweet_text'] = tweet_text
-#     query['hashtag_arg'] = 'metminiwx'          # do not supply the #
-#     query['lat'] = 51.4151                      # FIXME - put in definitions.py Stockcross
-#     query['lon'] = -1.3776                      # Stockcross
-#
-#     status_code, response_dict = call_rest_api.call_rest_api(get_env.get_twitter_service_endpoint() + '/send_text', query)
-#
-#     if response_dict['status'] == 'OK' :
-#         tweet_len = response_dict['tweet_len'].__str__()
-#         print('Tweet sent OK, tweet_len=' + tweet_len + ', uuid=' + uuid.__str__())
-#     else:
-#         print(response_dict['status'])
-
-
-# def send_tweet_with_video(tweet_text, filename, uuid):
-#     """
-#     Send a Tweet with a video file
-#     """
-#     query = {}                                  # API call to twitter-service
-#     query['app_name'] = 'webcamd'
-#     query['uuid'] = uuid
-#     query['tweet_text'] = tweet_text
-#     query['hashtag_arg'] = 'metminiwx'          # do not supply the #
-#     query['lat'] = 51.4151                      # Stockcross
-#     query['lon'] = -1.3776                      # Stockcross
-#     query['video_pathname'] = filename
-#
-#     status_code, response_dict = call_rest_api.call_rest_api(get_env.get_twitter_service_endpoint() + '/send_video', query)
-#
-#     # print('status_code=' + status_code.__str__())
-#     # pprint(response_dict)
-#     # if response_dict['status'] == 'OK' and response_dict['tweet_sent'] == True:
-#     if response_dict['status'] == 'OK' :
-#         tweet_len = response_dict['tweet_len'].__str__()
-#         print('Tweet sent OK, tweet_len=' + tweet_len + ', uuid=' + uuid.__str__())
-#     else:
-#         print(response_dict['status'])
-
-# FIXME : leading zero
 # FIXME : UTC
 # The WMO synopsis should only use sensor data that does not need Internet - i.e. totally independent AWS
 def update_synopsis_file(synopsis_file_fp, this_uuid, temp_c, wet_bulb_c, dew_point_c, feels_like_c, humidity, pressure, rain_rate, last_rain_tip, rain_last_24h, dominant_wind_direction, wind_knots_2m, recent_max_gust, solar, uv_index, okta, okta_text, synopsis_code, synopsis_text, forecast, version):
@@ -119,22 +72,12 @@ def main():
         version = get_env.get_version()
         verbose = get_env.get_verbose()
         stage = get_env.get_stage()
-        cumulusmx_endpoint = get_env.get_cumulusmx_endpoint()
         # cumulusmx_endpoint = '192.168.1.99' # for testing REST API failure handling
+        cumulusmx_endpoint = get_env.get_cumulusmx_endpoint()
 
-        # webcam_service_endpoint = get_env.get_webcam_service_endpoint()
-        # video_length_secs = get_env_app.get_video_length()
-        # preamble_secs = get_env_app.get_video_preamble()
-        # min_solar = get_env_app.get_min_solar()
-        # max_solar = get_env_app.get_max_solar()
         mins_between_updates = get_env_app.get_mins_between_updates()
         lat = 51.4151  # Stockcross
         lon = -1.3776  # Stockcross
-
-        # webcam_query = {}                       # API call to webcam-service
-        # webcam_query['app_name'] = my_app_name
-        # webcam_query['video_length_secs'] = video_length_secs
-        # webcam_query['preamble_secs'] = preamble_secs
 
         print(my_app_name + ' started, version=' + version)
         print('stage=' + stage)
@@ -142,12 +85,6 @@ def main():
             verbose = True
         print('verbose=' + verbose.__str__())
         print('cumulusmx endpoint=' + cumulusmx_endpoint)
-
-        # print('webcam-service endpoint=' + webcam_service_endpoint)
-        # print('min_solar=' + min_solar.__str__())
-        # print('max_solar=' + max_solar.__str__())
-        # print('preamble_secs=' + preamble_secs.__str__())
-        # print('video_length_secs=' + video_length_secs.__str__())
 
         synopsis_filename = definitions.SYNOPSIS_ROOT + 'synopsis.tsv'
         print('synopsis_filename=' + synopsis_filename)
@@ -163,11 +100,6 @@ def main():
                 print('Error: CumulusMX did not return valid data')
                 cumulus_comms.wait_until_cumulus_data_ok(cumulusmx_endpoint)  # loop until CumulusMX data is OK
                 continue
-
-                # print(time.ctime() + ' Error : Aercus to CumulusMX REST API failure')
-                # update_synopsis_file(synopsis_file_fp, this_uuid, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, '---', None)
-                # time.sleep(120)
-                # continue
 
             pressure = float(cumulus_weather_info['Pressure'])
             temp_c = float(cumulus_weather_info['OutdoorTemp'])
@@ -188,29 +120,29 @@ def main():
             # derived value
             wet_bulb_c = wet_bulb.get_wet_bulb(temp_c, pressure, dew_point_c)
 
+            # determine the WMO synopsis
+            synopsis_code, synopsis_text = synopsis.get_synopsis(temp_c, wet_bulb_c, dew_point_c, rain_rate, wind_knots_2m, solar)
+            if 'fog' in synopsis_text:
+                is_fog = True
+            else:
+                is_fog = False
+
             # solar geometry
             altitude_deg = solar_rad_expected.calc_altitude(lat, lon)
             solar_radiation_theoretical = solar_rad_expected.get_solar_radiation_theoretical(altitude_deg)
 
             # derived cloud coverage estimate
-            cloud_coverage_percent = solar_rad_expected.calc_cloud_coverage(solar, solar_radiation_theoretical)
-            okta = okta_funcs.coverage_to_okta(cloud_coverage_percent)
+            cloud_coverage_percent = solar_rad_expected.calc_cloud_coverage(lat, lon, solar, solar_radiation_theoretical)
+            okta = okta_funcs.coverage_to_okta(cloud_coverage_percent, is_fog)
             okta_text = okta_funcs.convert_okta_to_cloud_cover(okta)[0]
 
-            # determine the WMO synopsis
-            synopsis_code, synopsis_text = synopsis.get_synopsis(temp_c, wet_bulb_c, dew_point_c, rain_rate, wind_knots_2m, solar)
-
-            # Aercus to CumulusMX USB channel not working
-            if cumulus_weather_info['DataStopped']:
-                print(time.ctime() + ' Error : Aercus to CumulusMX USB connection failure')
-                update_synopsis_file(synopsis_file_fp, this_uuid, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999, -999)
-            else:
-                update_synopsis_file(synopsis_file_fp, this_uuid, temp_c, wet_bulb_c, dew_point_c, feels_like_c, humidity, pressure, rain_rate, last_rain_tip, rain_last_24h, dominant_wind_direction, wind_knots_2m, recent_max_gust, solar, uv_index, okta, okta_text, synopsis_code, synopsis_text, forecast, version)
+            update_synopsis_file(synopsis_file_fp, this_uuid, temp_c, wet_bulb_c, dew_point_c, feels_like_c, humidity, pressure, rain_rate, last_rain_tip, rain_last_24h, dominant_wind_direction, wind_knots_2m, recent_max_gust, solar, uv_index, okta, okta_text, synopsis_code, synopsis_text, forecast, version)
 
             sleep_secs = mins_between_updates * 60
             time.sleep(sleep_secs)
 
     except Exception as e:
+        print('Error : ' + e.__str__())
         traceback.print_exc()
 
 
