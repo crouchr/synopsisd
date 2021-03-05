@@ -122,7 +122,7 @@ def main():
 
             # determine the WMO synopsis
             synopsis_code, synopsis_text = synopsis.get_synopsis(temp_c, wet_bulb_c, dew_point_c, rain_rate, wind_knots_2m, solar)
-            if 'fog' in synopsis_text:
+            if 'fog' in synopsis_text.lower():
                 is_fog = True
             else:
                 is_fog = False

@@ -2,7 +2,7 @@ import cumulus_comms
 from pprint import pprint
 
 
-# FIXME : This function is common with webcamd - consolidate
+# FIXME : This function is common with webcamd - consolidate and add exception handling
 def get_key_weather_variables(cumulus_endpoint):
     """
     Get some critical weather variables by querying the CumulusMX REST API
