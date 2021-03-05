@@ -15,6 +15,7 @@ import solar_rad_expected
 # artifacts (metrestapi)
 import cumulus_comms
 
+# imports
 import get_cumulus_weather_info
 import get_env
 import get_env_app
@@ -25,7 +26,7 @@ import definitions
 
 # FIXME : UTC
 # The WMO synopsis should only use sensor data that does not need Internet - i.e. totally independent AWS
-def update_synopsis_file(synopsis_file_fp, this_uuid, temp_c, wet_bulb_c, dew_point_c, feels_like_c, humidity, pressure, rain_rate, last_rain_tip, rain_last_24h, dominant_wind_direction, wind_knots_2m, recent_max_gust, solar, uv_index, okta, okta_text, synopsis_code, synopsis_text, forecast, version):
+def update_synopsis_file(synopsis_file_fp, this_uuid, temp_c, wet_bulb_c, dew_point_c, feels_like_c, humidity, pressure, rain_rate, last_rain_tip, rain_last_24h, dominant_wind_direction, wind_knots_2m, recent_max_gust, solar, altitude_deg, azimuth_deg, uv_index, okta, okta_text, synopsis_code, synopsis_text, forecast, version):
     # Post an invalid WMO code - a high value will also be highlighted on the Grafana output
     # There is no WMO code for 'data invalid' so use a 'reserved' one
     if temp_c == -999:
@@ -47,6 +48,8 @@ def update_synopsis_file(synopsis_file_fp, this_uuid, temp_c, wet_bulb_c, dew_po
         humidity.__str__() + '\t' + \
         pressure.__str__() + '\t' + \
         solar.__str__() + '\t' + \
+        altitude_deg.__str__() + '\t' + \
+        azimuth_deg.__str__() + '\t' + \
         uv_index.__str__() + '\t' + \
         dominant_wind_direction.__str__() + '\t' + \
         wind_knots_2m.__str__() + '\t' + \
@@ -129,6 +132,7 @@ def main():
 
             # solar geometry
             altitude_deg = solar_rad_expected.calc_altitude(lat, lon)
+            azimuth_deg = solar_rad_expected.calc_azimuth(lat, lon)
             solar_radiation_theoretical = solar_rad_expected.get_solar_radiation_theoretical(altitude_deg)
 
             # derived cloud coverage estimate
@@ -136,7 +140,16 @@ def main():
             okta = okta_funcs.coverage_to_okta(cloud_coverage_percent, is_fog)
             okta_text = okta_funcs.convert_okta_to_cloud_cover(okta)[0]
 
-            update_synopsis_file(synopsis_file_fp, this_uuid, temp_c, wet_bulb_c, dew_point_c, feels_like_c, humidity, pressure, rain_rate, last_rain_tip, rain_last_24h, dominant_wind_direction, wind_knots_2m, recent_max_gust, solar, uv_index, okta, okta_text, synopsis_code, synopsis_text, forecast, version)
+            update_synopsis_file(synopsis_file_fp, this_uuid, temp_c, wet_bulb_c, dew_point_c, feels_like_c, humidity, pressure,
+                                 rain_rate, last_rain_tip, rain_last_24h,
+                                 dominant_wind_direction, wind_knots_2m, recent_max_gust,
+                                 solar, altitude_deg, azimuth_deg,
+                                 uv_index,
+                                 okta, okta_text,
+                                 synopsis_code, synopsis_text,
+                                 forecast,
+                                 version
+                                 )
 
             sleep_secs = mins_between_updates * 60
             time.sleep(sleep_secs)
