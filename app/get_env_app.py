@@ -13,3 +13,13 @@ def get_mins_between_updates():
         mins_between_updates = 10    # was 15
 
     return mins_between_updates
+
+
+# Solar multiplier = theoretical / measured on a cloudless day at noon
+def get_solar_multiplier():
+    if 'SOLAR_MULTIPLIER' in os.environ:
+        solar_multiplier = os.environ['SOLAR_MULTIPLIER']
+    else:
+        solar_multiplier = 1.7       # value in Ermin Street
+
+    return solar_multiplier

@@ -26,7 +26,14 @@ import definitions
 
 # FIXME : UTC
 # The WMO synopsis should only use sensor data that does not need Internet - i.e. totally independent AWS
-def update_synopsis_file(synopsis_file_fp, this_uuid, temp_c, wet_bulb_c, dew_point_c, feels_like_c, humidity, pressure, rain_rate, last_rain_tip, rain_last_24h, dominant_wind_direction, wind_knots_2m, recent_max_gust, solar, altitude_deg, azimuth_deg, uv_index, okta, okta_text, synopsis_code, synopsis_text, forecast, version):
+def update_synopsis_file(synopsis_file_fp, this_uuid, temp_c, wet_bulb_c, dew_point_c, feels_like_c,
+                         humidity,
+                         pressure,
+                         rain_rate, last_rain_tip, rain_last_24h,
+                         dominant_wind_direction, wind_knots_2m, recent_max_gust,
+                         solar, solar_rad_corrected, altitude_deg, azimuth_deg, uv_index, okta, okta_text,
+                         synopsis_code, synopsis_text, forecast,
+                         version):
     # Post an invalid WMO code - a high value will also be highlighted on the Grafana output
     # There is no WMO code for 'data invalid' so use a 'reserved' one
     if temp_c == -999:
@@ -48,6 +55,7 @@ def update_synopsis_file(synopsis_file_fp, this_uuid, temp_c, wet_bulb_c, dew_po
         humidity.__str__() + '\t' + \
         pressure.__str__() + '\t' + \
         solar.__str__() + '\t' + \
+        solar_rad_corrected.__str__() + '\t' + \
         altitude_deg.__str__() + '\t' + \
         azimuth_deg.__str__() + '\t' + \
         uv_index.__str__() + '\t' + \
@@ -79,6 +87,8 @@ def main():
         cumulusmx_endpoint = get_env.get_cumulusmx_endpoint()
 
         mins_between_updates = get_env_app.get_mins_between_updates()
+        solar_multiplier = get_env_app.get_solar_multiplier()
+
         lat = 51.4151  # Stockcross
         lon = -1.3776  # Stockcross
 
@@ -88,6 +98,7 @@ def main():
             verbose = True
         print('verbose=' + verbose.__str__())
         print('cumulusmx endpoint=' + cumulusmx_endpoint)
+        print('solar_multiplier=' + solar_multiplier.__str__())
 
         synopsis_filename = definitions.SYNOPSIS_ROOT + 'synopsis.tsv'
         print('synopsis_filename=' + synopsis_filename)
@@ -134,16 +145,17 @@ def main():
             altitude_deg = solar_rad_expected.calc_altitude(lat, lon)
             azimuth_deg = solar_rad_expected.calc_azimuth(lat, lon)
             solar_radiation_theoretical = solar_rad_expected.get_solar_radiation_theoretical(altitude_deg)
+            solar_rad_corrected = int(solar * solar_multiplier)
 
             # derived cloud coverage estimate
-            cloud_coverage_percent = solar_rad_expected.calc_cloud_coverage(lat, lon, solar, solar_radiation_theoretical)
+            cloud_coverage_percent = solar_rad_expected.calc_cloud_coverage(lat, lon, solar_rad_corrected, solar_radiation_theoretical)
             okta = okta_funcs.coverage_to_okta(cloud_coverage_percent, is_fog)
             okta_text = okta_funcs.convert_okta_to_cloud_cover(okta)[0]
 
             update_synopsis_file(synopsis_file_fp, this_uuid, temp_c, wet_bulb_c, dew_point_c, feels_like_c, humidity, pressure,
                                  rain_rate, last_rain_tip, rain_last_24h,
                                  dominant_wind_direction, wind_knots_2m, recent_max_gust,
-                                 solar, altitude_deg, azimuth_deg,
+                                 solar, solar_rad_corrected, altitude_deg, azimuth_deg,
                                  uv_index,
                                  okta, okta_text,
                                  synopsis_code, synopsis_text,
