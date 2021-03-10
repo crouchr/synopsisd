@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "4b6a7c71522aa5e9d95c5df4bd2039a35d10297c9b4a87fcecce5a7105ed8c59"
+            "sha256": "668ce5df54248c91fd5aef8c7ba0299198497d9fc1b998b943520d4b0c935e83"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -152,11 +152,11 @@
         },
         "metfuncs": {
             "hashes": [
-                "sha256:c470871722e92c34e71acdfe49e068ce7106b441191ed857347a73fd7f620a66",
-                "sha256:c9ccb3f018174dac79aa8947622f5d2bda7c2e7db9e28181e7a0ab0f9dfc144f"
+                "sha256:01a3148192c68f0b3d3d967ec463dfeab700c47873e4a21d3356f4c660d3bcc0",
+                "sha256:c26f35880fa3391808289c9a3f50ae0d67be1f1c7171e44d23daecceab37ff57"
             ],
             "index": "ermin",
-            "version": "==1.0.24"
+            "version": "==1.0.25"
         },
         "metpy": {
             "hashes": [
