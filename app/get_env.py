@@ -37,9 +37,9 @@ def get_stage():
 
 def get_cumulusmx_endpoint():
     if 'STAGE' in os.environ and os.environ['STAGE'] == 'PRD':
-        cumulusmx_endpoint = 'http://cumulusmx:8998/api/data/currentdata'
+        cumulusmx_endpoint = 'http://192.168.1.12:8998/api/data/currentdata'
     else:
-        cumulusmx_endpoint = 'http://192.168.1.180:8998/api/data/currentdata'
+        cumulusmx_endpoint = 'http://192.168.1.12:8998/api/data/currentdata'
 
     return cumulusmx_endpoint
 
