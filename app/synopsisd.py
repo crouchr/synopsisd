@@ -20,7 +20,7 @@ import get_cumulus_weather_info
 import get_env
 import get_env_app
 import definitions
-
+import sync_start_time
 
 # Add a bunch of reliability code to this before deploying
 
@@ -47,7 +47,6 @@ def update_synopsis_file(synopsis_file_fp, this_uuid, temp_c, wet_bulb_c, dew_po
 
     rec_tsv = time.ctime() + '\t' + \
         synopsis_str + '\t' + \
-        '"' + synopsis_text + '"' + '\t' + \
         temp_c.__str__() + '\t' + \
         wet_bulb_c.__str__() + '\t' + \
         dew_point_c.__str__() + '\t' + \
@@ -67,6 +66,7 @@ def update_synopsis_file(synopsis_file_fp, this_uuid, temp_c, wet_bulb_c, dew_po
         rain_rate.__str__() + '\t' + \
         last_rain_tip.__str__() + '\t' + \
         rain_last_24h.__str__() + '\t' + \
+        '"' + synopsis_text + '"' + '\t' + \
         '"' + forecast.__str__() + '"' + '\t' + \
         version.__str__()
 
@@ -104,8 +104,12 @@ def main():
         print('synopsis_filename=' + synopsis_filename)
         synopsis_file_fp = open(synopsis_filename, 'a')        # file does not need to exist / be touched before this script runs
 
+        print('waiting to sync main loop...')
+        sync_start_time.wait_until_minute_flip()
+
         print('entering main loop...')
         while True:
+            start_secs = time.time()
             this_uuid = str(uuid.uuid4())          # unique uuid per cycle
 
             cumulus_weather_info = get_cumulus_weather_info.get_key_weather_variables(cumulusmx_endpoint)     # REST API call
@@ -162,8 +166,9 @@ def main():
                                  forecast,
                                  version
                                  )
-
-            sleep_secs = mins_between_updates * 60
+            stop_secs = time.time()
+            # mins_between_updates = 1
+            sleep_secs = (mins_between_updates * 60) - (stop_secs - start_secs)
             time.sleep(sleep_secs)
 
     except Exception as e:
