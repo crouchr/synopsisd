@@ -15,6 +15,9 @@ import solar_rad_expected
 # artifacts (metrestapi)
 import cumulus_comms
 
+# artifacts (metminifuncs)
+import sync_start_time
+
 # imports
 import get_cumulus_weather_info
 import get_env
@@ -26,7 +29,7 @@ import sync_start_time
 
 # FIXME : UTC
 # The WMO synopsis should only use sensor data that does not need Internet - i.e. totally independent AWS
-def update_synopsis_file(synopsis_file_fp, this_uuid, temp_c, wet_bulb_c, dew_point_c, feels_like_c,
+def update_synopsis_file(timestamp, synopsis_file_fp, this_uuid, temp_c, wet_bulb_c, dew_point_c, feels_like_c,
                          humidity,
                          pressure,
                          rain_rate, last_rain_tip, rain_last_24h,
@@ -45,7 +48,7 @@ def update_synopsis_file(synopsis_file_fp, this_uuid, temp_c, wet_bulb_c, dew_po
     if synopsis_text == 'No significant weather observed' or synopsis_text == '-None-':
         synopsis_text = '---'
 
-    rec_tsv = time.ctime() + '\t' + \
+    rec_tsv = timestamp + '\t' + \
         synopsis_str + '\t' + \
         temp_c.__str__() + '\t' + \
         wet_bulb_c.__str__() + '\t' + \
@@ -104,14 +107,13 @@ def main():
         print('synopsis_filename=' + synopsis_filename)
         synopsis_file_fp = open(synopsis_filename, 'a')        # file does not need to exist / be touched before this script runs
 
-        print('waiting to sync main loop...')
-        sync_start_time.wait_until_minute_flip()
-
         print('entering main loop...')
         while True:
+            print('waiting to sync main loop...')
+            sync_start_time.wait_until_minute_flip(10)
             start_secs = time.time()
-            this_uuid = str(uuid.uuid4())          # unique uuid per cycle
-
+            this_uuid = str(uuid.uuid4())                       # unique uuid per cycle
+            record_timestamp = time.ctime()                     # FIXME - change to UTC
             cumulus_weather_info = get_cumulus_weather_info.get_key_weather_variables(cumulusmx_endpoint)     # REST API call
             # cumulus_weather_info = None
             if cumulus_weather_info is None:    # can't talk to CumulusMX
@@ -156,7 +158,8 @@ def main():
             okta = okta_funcs.coverage_to_okta(cloud_coverage_percent, is_fog)
             okta_text = okta_funcs.convert_okta_to_cloud_cover(okta)[0]
 
-            update_synopsis_file(synopsis_file_fp, this_uuid, temp_c, wet_bulb_c, dew_point_c, feels_like_c, humidity, pressure,
+            update_synopsis_file(record_timestamp, synopsis_file_fp, this_uuid,
+                                 temp_c, wet_bulb_c, dew_point_c, feels_like_c, humidity, pressure,
                                  rain_rate, last_rain_tip, rain_last_24h,
                                  dominant_wind_direction, wind_knots_2m, recent_max_gust,
                                  solar, solar_rad_corrected, altitude_deg, azimuth_deg,
@@ -168,7 +171,7 @@ def main():
                                  )
             stop_secs = time.time()
             # mins_between_updates = 1
-            sleep_secs = (mins_between_updates * 60) - (stop_secs - start_secs)
+            sleep_secs = (mins_between_updates * 60) - (stop_secs - start_secs) - 10
             time.sleep(sleep_secs)
 
     except Exception as e:
@@ -178,4 +181,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-

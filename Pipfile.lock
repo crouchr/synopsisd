@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "668ce5df54248c91fd5aef8c7ba0299198497d9fc1b998b943520d4b0c935e83"
+            "sha256": "5529fd7ef161bd51cc5f5fb88a8aa27a0d32612dcfb394efce58943cbeaca8c2"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -60,11 +60,11 @@
         },
         "importlib-metadata": {
             "hashes": [
-                "sha256:18d5ff601069f98d5d605b6a4b50c18a34811d655c55548adc833e687289acde",
-                "sha256:407d13f55dc6f2a844e62325d18ad7019a436c4bfcaee34cda35f2be6e7c3e34"
+                "sha256:742add720a20d0467df2f444ae41704000f50e1234f46174b51f9c6031a1bd71",
+                "sha256:b74159469b464a99cb8cc3e21973e4d96e05d3024d337313fedb618a6e86e6f4"
             ],
             "markers": "python_version < '3.8'",
-            "version": "==3.7.2"
+            "version": "==3.7.3"
         },
         "importlib-resources": {
             "hashes": [
@@ -157,6 +157,14 @@
             ],
             "index": "ermin",
             "version": "==1.0.25"
+        },
+        "metminifuncs": {
+            "hashes": [
+                "sha256:7e042587110d492bb88458ac59827900ca35e5948c78adfb78b344274b616524",
+                "sha256:c69f240a7cb03db51534846f6696fb017710d81b60b640faa121ed1f3d7e2cfc"
+            ],
+            "index": "ermin",
+            "version": "==1.0.5"
         },
         "metpy": {
             "hashes": [
@@ -410,11 +418,11 @@
         },
         "urllib3": {
             "hashes": [
-                "sha256:1b465e494e3e0d8939b50680403e3aedaa2bc434b7d5af64dfd3c958d7f5ae80",
-                "sha256:de3eedaad74a2683334e282005cd8d7f22f4d55fa690a2a1020a416cb0a47e73"
+                "sha256:2f4da4594db7e1e110a944bb1b551fdf4e6c136ad42e4234131391e21eb5b0df",
+                "sha256:e7b021f7241115872f92f43c6508082facffbd1c048e3c6e2bb9c2a157e28937"
             ],
             "markers": "python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4' and python_version < '4'",
-            "version": "==1.26.3"
+            "version": "==1.26.4"
         },
         "uuid": {
             "hashes": [
