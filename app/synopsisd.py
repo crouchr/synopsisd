@@ -11,6 +11,7 @@ import wet_bulb
 import synopsis
 import okta_funcs
 import solar_rad_expected
+import jena_data
 
 # artifacts (metrestapi)
 import cumulus_comms
@@ -92,9 +93,6 @@ def main():
         mins_between_updates = get_env_app.get_mins_between_updates()
         solar_multiplier = get_env_app.get_solar_multiplier()
 
-        lat = 51.4151  # Stockcross
-        lon = -1.3776  # Stockcross
-
         print(my_app_name + ' started, version=' + version)
         print('stage=' + stage)
         if stage == 'DEV':
@@ -112,8 +110,8 @@ def main():
             print('waiting to sync main loop...')
             sync_start_time.wait_until_minute_flip(10)
             start_secs = time.time()
-            this_uuid = str(uuid.uuid4())                       # unique uuid per cycle
-            record_timestamp = time.ctime()                     # FIXME - change to UTC
+            this_uuid = str(uuid.uuid4())                               # unique uuid per cycle
+            record_timestamp = jena_data.get_jena_timestamp()           # UTC
             cumulus_weather_info = get_cumulus_weather_info.get_key_weather_variables(cumulusmx_endpoint)     # REST API call
             # cumulus_weather_info = None
             if cumulus_weather_info is None:    # can't talk to CumulusMX
@@ -148,13 +146,13 @@ def main():
                 is_fog = False
 
             # solar geometry
-            altitude_deg = solar_rad_expected.calc_altitude(lat, lon)
-            azimuth_deg = solar_rad_expected.calc_azimuth(lat, lon)
+            altitude_deg = solar_rad_expected.calc_altitude(definitions.ermin_lat, definitions.lon)
+            azimuth_deg = solar_rad_expected.calc_azimuth(definitions.ermin_lat, definitions.lon)
             solar_radiation_theoretical = solar_rad_expected.get_solar_radiation_theoretical(altitude_deg)
             solar_rad_corrected = int(solar * solar_multiplier)
 
             # derived cloud coverage estimate
-            cloud_coverage_percent = solar_rad_expected.calc_cloud_coverage(lat, lon, solar_rad_corrected, solar_radiation_theoretical)
+            cloud_coverage_percent = solar_rad_expected.calc_cloud_coverage(definitions.ermin_lat, definitions.lon, solar_rad_corrected, solar_radiation_theoretical)
             okta = okta_funcs.coverage_to_okta(cloud_coverage_percent, is_fog)
             okta_text = okta_funcs.convert_okta_to_cloud_cover(okta)[0]
 
