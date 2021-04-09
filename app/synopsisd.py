@@ -146,13 +146,13 @@ def main():
                 is_fog = False
 
             # solar geometry
-            altitude_deg = solar_rad_expected.calc_altitude(definitions.ermin_lat, definitions.lon)
-            azimuth_deg = solar_rad_expected.calc_azimuth(definitions.ermin_lat, definitions.lon)
+            altitude_deg = solar_rad_expected.calc_altitude(definitions.ermin_lat, definitions.ermin_lon)
+            azimuth_deg = solar_rad_expected.calc_azimuth(definitions.ermin_lat, definitions.ermin_lon)
             solar_radiation_theoretical = solar_rad_expected.get_solar_radiation_theoretical(altitude_deg)
             solar_rad_corrected = int(solar * solar_multiplier)
 
             # derived cloud coverage estimate
-            cloud_coverage_percent = solar_rad_expected.calc_cloud_coverage(definitions.ermin_lat, definitions.lon, solar_rad_corrected, solar_radiation_theoretical)
+            cloud_coverage_percent = solar_rad_expected.calc_cloud_coverage(definitions.ermin_lat, definitions.ermin_lon, solar_rad_corrected, solar_radiation_theoretical)
             okta = okta_funcs.coverage_to_okta(cloud_coverage_percent, is_fog)
             okta_text = okta_funcs.convert_okta_to_cloud_cover(okta)[0]
 
