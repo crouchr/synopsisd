@@ -23,3 +23,12 @@ def get_solar_multiplier():
         solar_multiplier = 1.7       # value in Ermin Street
 
     return solar_multiplier
+
+
+# elevation in metres
+def get_site_elevation():
+    if 'SITE_ELEVATION' in os.environ:
+        site_elevation = os.environ['SITE_ELEVATION']
+    else:
+        site_elevation = 50
+    return site_elevation

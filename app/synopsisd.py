@@ -12,6 +12,7 @@ import synopsis
 import okta_funcs
 import solar_rad_expected
 import jena_data
+import mean_sea_level_pressure
 
 # artifacts (metrestapi)
 import cumulus_comms
@@ -92,6 +93,7 @@ def main():
 
         mins_between_updates = get_env_app.get_mins_between_updates()
         solar_multiplier = get_env_app.get_solar_multiplier()
+        site_elevation_m = get_env_app.get_site_elevation()
 
         print(my_app_name + ' started, version=' + version)
         print('stage=' + stage)
@@ -100,6 +102,7 @@ def main():
         print('verbose=' + verbose.__str__())
         print('cumulusmx endpoint=' + cumulusmx_endpoint)
         print('solar_multiplier=' + solar_multiplier.__str__())
+        print('site_elevation_m=' + site_elevation_m.__str__())
 
         synopsis_filename = definitions.SYNOPSIS_ROOT + 'synopsis.tsv'
         print('synopsis_filename=' + synopsis_filename)
@@ -108,7 +111,7 @@ def main():
         print('entering main loop...')
         while True:
             print('waiting to sync main loop...')
-            sync_start_time.wait_until_minute_flip(10)
+            sync_start_time.wait_until_minute_flip(10) # comment this out when testing
             start_secs = time.time()
             this_uuid = str(uuid.uuid4())                               # unique uuid per cycle
             record_timestamp = jena_data.get_jena_timestamp()           # UTC
@@ -119,8 +122,12 @@ def main():
                 cumulus_comms.wait_until_cumulus_data_ok(cumulusmx_endpoint)  # loop until CumulusMX data is OK
                 continue
 
-            pressure = float(cumulus_weather_info['Pressure'])
             temp_c = float(cumulus_weather_info['OutdoorTemp'])
+
+            # Burt says to record pressure adjusted to MSL (Mean Sea Level)
+            pressure = float(cumulus_weather_info['Pressure'])
+            pressure = round(pressure + mean_sea_level_pressure.msl_k_factor(site_elevation_m, temp_c), 1)
+
             dew_point_c = float(cumulus_weather_info['OutdoorDewpoint'])
             humidity = float(cumulus_weather_info['OutdoorHum'])
             rain_rate = float(cumulus_weather_info['RainRate'])
